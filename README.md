@@ -24,12 +24,36 @@ This project utilizes a dual-stage deep learning pipeline combined with algorith
 * **Backend:** FastAPI, Python, Uvicorn
 * **Computer Vision & ML:** YOLOv8, CNN OCR, OpenCV (cv2), NumPy
 
-## 🚀 Quick Start
-To launch the entire application stack (Frontend UI + Python Backend) locally:
+## 🚀 Quick Start & Deployment
 
-1. Clone the repository.
-2. Install Python dependencies: `cd backend && pip install -r requirements.txt` *(Note: requires `.env` configuration)*
-3. Install Node dependencies: `cd frontend && npm install`
-4. Run the automated startup script from the root directory:
+### Option 1: One-Click Startup (Windows)
+1. Turn on your Mobile Hotspot and connect your PC (required for mobile camera access).
+2. Double-click the `start_project.bat` file in the root directory.
+3. The dashboard will automatically launch in your desktop browser at `http://localhost:5173/`.
+
+### Option 2: Manual Startup (Terminal)
+If you prefer running the servers manually, open two separate terminals:
+
+**Terminal 1 (Backend):**
 ```bash
-./start_project.bat
+cd backend
+venv\Scripts\activate
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+**Terminal 2 (Frontend):**
+cd frontend
+npm run dev
+
+
+📱 Live Mobile Camera Mode ("Toll Booth" Simulation)
+1.To use your smartphone camera for live inference:
+
+2.Ensure your phone and laptop are on the same Wi-Fi network / Hotspot.
+
+3.Run the application using either method above.
+
+4.Look at the Frontend terminal output for the Network: URL (e.g., http://192.168.x.x:5173/).
+
+5.Type that exact URL into your mobile browser.
+
+6.Tap Live Camera to instantly stream and analyze frames via the local YOLO pipeline.

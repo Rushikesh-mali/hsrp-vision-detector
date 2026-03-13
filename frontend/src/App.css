@@ -461,3 +461,133 @@ body {
 /* =========================================
    8. ANIMATIONS
 =========================================
+
+
+
+
+/* Webcam Customization */
+.webcam-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.webcam-video {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px dashed var(--primary-color);
+  object-fit: cover;
+  background-color: #000;
+}
+
+
+/* =========================================
+   9. MOBILE RESPONSIVENESS (Native App View)
+========================================= */
+@media (max-width: 768px) {
+  /* 1. Transform Sidebar into Bottom Nav Bar */
+  .webapp-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    flex-direction: row;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhone safe area */
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar-brand {
+    display: none; /* Hide logo on mobile to prioritize nav buttons */
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    width: 100%;
+    padding: 8px;
+    justify-content: space-around;
+  }
+
+  .sidebar-nav .nav-item {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 4px;
+    font-size: 0.7rem;
+    text-align: center;
+    border-radius: 8px;
+    width: 30%;
+    justify-content: center;
+  }
+
+  .sidebar-nav .nav-item.active {
+    border-left: none;
+    background-color: rgba(59, 130, 246, 0.15); 
+    color: var(--primary-color);
+  }
+
+  /* 2. Adjust Main Content for Bottom Nav */
+  .main-content {
+    padding: 24px 16px 100px 16px; /* 100px bottom padding to clear the nav bar! */
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .btn-export {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 3. Stack the Grids */
+  .dashboard-grid, .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  /* 4. Thumb-Friendly Buttons & Camera */
+  .action-row {
+    flex-direction: column; /* Stack the Clear and Run Analysis buttons */
+  }
+
+  .btn-primary, .btn-outline {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .plate-display {
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+  }
+
+  .webcam-video {
+    height: 300px; /* Force a good aspect ratio on mobile */
+  }
+
+  /* 5. Mobile History Table */
+  .history-table th, .history-table td {
+    padding: 12px 8px;
+    font-size: 0.8rem;
+  }
+  
+  /* Hide the less important Timestamp column on tiny screens */
+  .history-table th:nth-child(4), 
+  .history-table td:nth-child(4) {
+    display: none; 
+  }
+}

@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import axios from 'axios'
+import Webcam from 'react-webcam'
 import { 
   UploadCloud, Car, Calendar, CreditCard, 
   Download, LayoutDashboard, History, Settings, 
   CheckCircle, AlertCircle, Loader2, Trash2,
-  Cpu, Zap, Target 
+  Cpu, Zap, Target, Camera // <-- Added Camera icon
 } from 'lucide-react'
 import './App.css'
 
@@ -17,6 +18,9 @@ function App() {
   const [error, setError] = useState(null)
   const [scanHistory, setScanHistory] = useState([])
   
+  // NEW: Webcam States
+  const [showWebcam, setShowWebcam] = useState(false)
+  const webcamRef = useRef(null)
   const fileInputRef = useRef(null)
 
   const handleFileChange = (e) => {
@@ -26,8 +30,26 @@ function App() {
       setPreview(URL.createObjectURL(file))
       setResult(null)
       setError(null)
+      setShowWebcam(false)
     }
   }
+
+  // NEW: Capture photo from webcam and convert it to a File object
+  const capturePhoto = useCallback(async () => {
+    const imageSrc = webcamRef.current.getScreenshot()
+    if (imageSrc) {
+      // Convert the base64 image into a File so our backend accepts it perfectly
+      const res = await fetch(imageSrc)
+      const blob = await res.blob()
+      const file = new File([blob], "webcam_capture.jpg", { type: "image/jpeg" })
+      
+      setSelectedFile(file)
+      setPreview(imageSrc)
+      setResult(null)
+      setError(null)
+      setShowWebcam(false) // Turn off camera after snapping the pic!
+    }
+  }, [webcamRef])
 
   const handleUpload = async () => {
     if (!selectedFile) return
@@ -38,7 +60,7 @@ function App() {
     formData.append("file", selectedFile)
 
     try {
-      const response = await axios.post("http://localhost:8000/detect/", formData, {
+     const response = await axios.post(`http://${window.location.hostname}:8000/detect/`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       })
       
@@ -63,12 +85,12 @@ function App() {
     setPreview(null)
     setResult(null)
     setError(null)
+    setShowWebcam(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const downloadReport = () => {
     if (!result) return
-    // UPDATED: Now includes the Vehicle Body Type in the text file
     const reportText = `HSRP SCAN REPORT\n-------------------\nPlate Number: ${result.plate_characters}\nVehicle Type: ${result.vehicle_type}\nHSRP Category: ${result.classification}\nTimestamp: ${result.timestamp}\nStatus: Verified via YOLOv8 & CNN Engine\n`
     const blob = new Blob([reportText], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -85,21 +107,49 @@ function App() {
   const renderDashboard = () => (
     <div className="dashboard-grid animate-fade-in">
       <section className="card scanner-card">
-        <h3 className="card-title">Image Input</h3>
+        <div className="card-header-flex">
+          <h3 className="card-title" style={{border: 'none', margin: 0, padding: 0}}>Image Input</h3>
+          {/* NEW: Toggle button for Webcam */}
+          {!preview && (
+            <button 
+              className="btn-outline btn-small"
+              onClick={() => setShowWebcam(!showWebcam)}
+            >
+              <Camera size={16} /> {showWebcam ? "Close Camera" : "Live Camera"}
+            </button>
+          )}
+        </div>
         
         {!preview ? (
-          <div className="upload-dropzone" onClick={() => fileInputRef.current.click()}>
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              accept="image/*" 
-              onChange={handleFileChange} 
-              className="hidden-input"
-            />
-            <UploadCloud size={48} className="upload-icon" />
-            <p className="upload-text">Click to browse or drag image here</p>
-            <p className="upload-hint">Supports JPG, PNG up to 10MB</p>
-          </div>
+          showWebcam ? (
+            // NEW: The Live Webcam UI
+            <div className="webcam-container animate-fade-in">
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                className="webcam-video"
+                videoConstraints={{ facingMode: "environment" }}
+              />
+              <button onClick={capturePhoto} className="btn-primary" style={{width: '100%', marginTop: '12px'}}>
+                <Camera size={18} /> Capture Frame
+              </button>
+            </div>
+          ) : (
+            // Standard File Upload UI
+            <div className="upload-dropzone" onClick={() => fileInputRef.current.click()}>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className="hidden-input"
+              />
+              <UploadCloud size={48} className="upload-icon" />
+              <p className="upload-text">Click to browse or drag image here</p>
+              <p className="upload-hint">Supports JPG, PNG up to 10MB</p>
+            </div>
+          )
         ) : (
           <div className="preview-container">
             <img src={preview} alt="Vehicle Preview" className="image-preview" />
@@ -141,7 +191,6 @@ function App() {
                 <div className="plate-display">{result.plate_characters}</div>
               </div>
 
-              {/* NEW: Vehicle Shape Display */}
               <div className="result-group">
                 <div className="result-header">
                   <Car size={18} />
@@ -150,7 +199,6 @@ function App() {
                 <div className="result-value">{result.vehicle_type}</div>
               </div>
 
-              {/* UPDATED: Plate Category Display */}
               <div className="result-group">
                 <div className="result-header">
                   <Settings size={18} />
@@ -168,7 +216,6 @@ function App() {
               </div>
             </div>
 
-            {/* Model Architecture Comparison Section */}
             <div className="metrics-container animate-slide-up" style={{ animationDelay: '0.1s' }}>
               <div className="metrics-header-main">
                 <Cpu size={16} /> 
@@ -176,7 +223,6 @@ function App() {
               </div>
               
               <div className="metrics-grid">
-                {/* YOLOv8 Card */}
                 <div className="metric-box yolo-box">
                   <div className="metric-header">
                     <Target size={16} /> YOLOv8 <span className="badge">Localization</span>
@@ -195,7 +241,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* CNN Card */}
                 <div className="metric-box cnn-box">
                   <div className="metric-header">
                     <Layers size={16} /> Custom CNN <span className="badge">OCR</span>
@@ -219,7 +264,7 @@ function App() {
         ) : (
           <div className="empty-state">
             <Car className="empty-icon" size={48} />
-            <p>Upload an image and run analysis to see results here.</p>
+            <p>Upload an image or use live camera to see results here.</p>
           </div>
         )}
       </section>
@@ -248,7 +293,6 @@ function App() {
         <div className="table-container">
           <table className="history-table">
             <thead>
-              {/* UPDATED: Added a column for the new Vehicle Type data */}
               <tr>
                 <th>Registration Plate</th>
                 <th>Body Type</th>
