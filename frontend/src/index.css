@@ -1,0 +1,16 @@
+/* Clean Reset to fix Vite default conflicts */
+:root {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #f1f5f9; /* Our dashboard background color */
+}
